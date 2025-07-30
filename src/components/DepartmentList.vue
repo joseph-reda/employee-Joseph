@@ -45,7 +45,6 @@ export default {
         { id: 2, name: 'Engineering', code: 'ENG01', company: 'Alpha Corp' },
         { id: 3, name: 'Sales', code: 'SAL01', company: 'Beta Inc' },
         { id: 4, name: 'Marketing', code: 'MKT01', company: 'Gamma Ltd' }
-        // Add more as needed
       ],
       search: '',
       page: 1,

@@ -1,5 +1,3 @@
-// src/services/authService.js
-
 let users = [
   {
     email: "admin@company.com",
@@ -32,7 +30,6 @@ export default {
     let user = users.find((u) => u.email === email);
 
     if (!user) {
-      // Register new user with default values
       user = {
         email,
         password,
@@ -43,7 +40,7 @@ export default {
       };
       users.push(user);
     } else if (user.password !== password) {
-      return null; // Incorrect password
+      return null;
     }
 
     const token = Math.random().toString(36).substr(2);

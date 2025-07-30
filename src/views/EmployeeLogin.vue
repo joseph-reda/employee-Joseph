@@ -1,4 +1,3 @@
-<!-- src/views/EmployeeLogin.vue -->
 <template>
   <div class="login-container">
     <div class="login-box">

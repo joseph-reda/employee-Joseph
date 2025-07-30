@@ -44,7 +44,6 @@ export default {
         { id: 3, name: 'Gamma Ltd', code: 'GAMMA' },
         { id: 4, name: 'Delta LLC', code: 'DELTA' },
         { id: 5, name: 'Zeta Group', code: 'ZETA' }
-        // Add more as needed
       ],
       search: '',
       page: 1,

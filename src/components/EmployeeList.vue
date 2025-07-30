@@ -47,7 +47,6 @@ export default {
         { id: 2, name: 'Bob Johnson', employeeId: 'E002', department: 'Engineering', email: 'bob@company.com' },
         { id: 3, name: 'Carol Davis', employeeId: 'E003', department: 'Sales', email: 'carol@company.com' },
         { id: 4, name: 'David Wilson', employeeId: 'E004', department: 'Marketing', email: 'david@company.com' }
-        // Add more as needed
       ],
       search: '',
       page: 1,
