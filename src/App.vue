@@ -1,61 +1,39 @@
 <template>
   <div id="app">
-    <AppNavbar />
-    <main class="main-content">
-      <router-view />
-    </main>
-    <footer class="footer">
-      <p>© 2025 BrainWise - All rights reserved.</p>
-    </footer>
+    <AppNavbar v-if="showNavbar" />
+    <router-view />
   </div>
 </template>
 
 <script>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import AppNavbar from './components/Navbar.vue';
 
 export default {
   name: 'AppRoot',
   components: {
     AppNavbar
+  },
+  setup() {
+    const route = useRoute();
+    const showNavbar = computed(() => route.path !== '/');
+    return { showNavbar };
   }
 };
 </script>
 
 <style>
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Base */
 body {
+  margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f9fafb;
-  color: #1a202c;
-  min-height: 100vh;
+  color: #2d3748;
 }
 
-/* App Container */
 #app {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-}
-
-/* Main Content */
-.main-content {
-  flex: 1;
-  padding: 2rem;
-}
-
-/* Footer */
-.footer {
-  background-color: #1f2937;
-  color: #f1f1f1;
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.9rem;
 }
 </style>

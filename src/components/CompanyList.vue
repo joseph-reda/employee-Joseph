@@ -1,131 +1,155 @@
 <template>
-  <div class="company-container">
-    <div class="company-card">
-      <h2 class="company-title">Company List</h2>
-      <button class="add-button" @click="addCompany">Add Company</button>
-      <table class="company-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Company Name</th>
-            <th>Location</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(company, index) in companies" :key="company.id">
-            <td>{{ index + 1 }}</td>
-            <td>{{ company.name }}</td>
-            <td>{{ company.location }}</td>
-            <td>
-              <button class="edit-button" @click="editCompany(company)">Edit</button>
-              <button class="delete-button" @click="deleteCompany(company.id)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="company-list">
+    <h2>Company List</h2>
+
+    <div class="actions">
+      <input type="text" v-model="search" placeholder="Search by name/code..." />
+      <button @click="deleteSelected" :disabled="!selected.length">Delete Selected</button>
+      <button @click="exportCSV" :disabled="!filteredCompanies.length">Export CSV</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" @change="toggleAll" :checked="allSelected" /></th>
+          <th>Name</th>
+          <th>Code</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="company in paginatedCompanies" :key="company.id">
+          <td><input type="checkbox" v-model="selected" :value="company.id" /></td>
+          <td>{{ company.name }}</td>
+          <td>{{ company.code }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button @click="page--" :disabled="page === 1">Prev</button>
+      <span>Page {{ page }} of {{ totalPages }}</span>
+      <button @click="page++" :disabled="page === totalPages">Next</button>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: "CompanyList",
+  name: 'CompanyList',
   data() {
     return {
       companies: [
-        { id: 1, name: "OpenAI", location: "San Francisco" },
-        { id: 2, name: "Google", location: "Mountain View" },
-        { id: 3, name: "Amazon", location: "Seattle" },
-      ]
+        { id: 1, name: 'Alpha Corp', code: 'ALPHA' },
+        { id: 2, name: 'Beta Inc', code: 'BETA' },
+        { id: 3, name: 'Gamma Ltd', code: 'GAMMA' },
+        { id: 4, name: 'Delta LLC', code: 'DELTA' },
+        { id: 5, name: 'Zeta Group', code: 'ZETA' }
+        // Add more as needed
+      ],
+      search: '',
+      page: 1,
+      perPage: 3,
+      selected: []
     };
   },
+  computed: {
+    filteredCompanies() {
+      const query = this.search.toLowerCase();
+      return this.companies.filter(
+        c => c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query)
+      );
+    },
+    paginatedCompanies() {
+      const start = (this.page - 1) * this.perPage;
+      return this.filteredCompanies.slice(start, start + this.perPage);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredCompanies.length / this.perPage);
+    },
+    allSelected() {
+      return (
+        this.paginatedCompanies.length > 0 &&
+        this.paginatedCompanies.every(c => this.selected.includes(c.id))
+      );
+    }
+  },
   methods: {
-    addCompany() {
-      alert("Add Company clicked");
+    toggleAll(e) {
+      const ids = this.paginatedCompanies.map(c => c.id);
+      this.selected = e.target.checked ? [...new Set([...this.selected, ...ids])] : this.selected.filter(id => !ids.includes(id));
     },
-    editCompany(company) {
-      alert(`Edit Company: ${company.name}`);
+    deleteSelected() {
+      this.companies = this.companies.filter(c => !this.selected.includes(c.id));
+      this.selected = [];
     },
-    deleteCompany(id) {
-      this.companies = this.companies.filter(c => c.id !== id);
+    exportCSV() {
+      const rows = [['ID', 'Name', 'Code']];
+      this.filteredCompanies.forEach(c => rows.push([c.id, c.name, c.code]));
+
+      const csv = rows.map(row => row.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'companies.csv';
+      link.click();
     }
   }
 };
 </script>
 
 <style scoped>
-.company-container {
+.company-list {
+  max-width: 800px;
+  margin: 0 auto;
   padding: 2rem;
-  background-color: #f0f4f8;
-  min-height: 100vh;
-}
-
-.company-card {
-  max-width: 900px;
-  margin: auto;
-  background-color: #fff;
-  padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-}
-
-.company-title {
-  font-size: 24px;
-  margin-bottom: 1rem;
-  color: #2c3e50;
-}
-
-.add-button {
-  padding: 0.5rem 1rem;
-  background-color: #38b2ac;
-  color: white;
-  border: none;
+  background: #fff;
   border-radius: 6px;
-  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
-.add-button:hover {
-  background-color: #319795;
+input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
-.company-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.company-table th,
-.company-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #ccc;
-  text-align: left;
-}
-
-.edit-button,
-.delete-button {
-  padding: 0.25rem 0.75rem;
-  margin-right: 0.5rem;
+button {
+  padding: 0.5rem 1rem;
   border: none;
+  background: #2c5282;
+  color: white;
   border-radius: 4px;
   cursor: pointer;
 }
 
-.edit-button {
-  background-color: #4299e1;
-  color: white;
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
-.edit-button:hover {
-  background-color: #3182ce;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
 }
 
-.delete-button {
-  background-color: #e53e3e;
-  color: white;
+th, td {
+  border: 1px solid #eee;
+  padding: 0.5rem;
+  text-align: left;
 }
 
-.delete-button:hover {
-  background-color: #c53030;
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

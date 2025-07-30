@@ -1,132 +1,156 @@
 <template>
-  <div class="department-container">
-    <div class="department-card">
-      <h2 class="department-title">Department List</h2>
-      <button class="add-button" @click="addDepartment">Add Department</button>
+  <div class="department-list">
+    <h2>Department List</h2>
 
-      <table class="department-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Department Name</th>
-            <th>Manager</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(dept, index) in departments" :key="dept.id">
-            <td>{{ index + 1 }}</td>
-            <td>{{ dept.name }}</td>
-            <td>{{ dept.manager }}</td>
-            <td>
-              <button class="edit-button" @click="editDepartment(dept)">Edit</button>
-              <button class="delete-button" @click="deleteDepartment(dept.id)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="actions">
+      <input type="text" v-model="search" placeholder="Search by name/code..." />
+      <button @click="deleteSelected" :disabled="!selected.length">Delete Selected</button>
+      <button @click="exportCSV" :disabled="!filteredDepartments.length">Export CSV</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" @change="toggleAll" :checked="allSelected" /></th>
+          <th>Name</th>
+          <th>Code</th>
+          <th>Company</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="dept in paginatedDepartments" :key="dept.id">
+          <td><input type="checkbox" v-model="selected" :value="dept.id" /></td>
+          <td>{{ dept.name }}</td>
+          <td>{{ dept.code }}</td>
+          <td>{{ dept.company }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button @click="page--" :disabled="page === 1">Prev</button>
+      <span>Page {{ page }} of {{ totalPages }}</span>
+      <button @click="page++" :disabled="page === totalPages">Next</button>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: "DepartmentList",
+  name: 'DepartmentList',
   data() {
     return {
       departments: [
-        { id: 1, name: "Engineering", manager: "John Smith" },
-        { id: 2, name: "Human Resources", manager: "Jane Doe" },
-        { id: 3, name: "Finance", manager: "Michael Scott" },
-      ]
+        { id: 1, name: 'HR', code: 'HR01', company: 'Alpha Corp' },
+        { id: 2, name: 'Engineering', code: 'ENG01', company: 'Alpha Corp' },
+        { id: 3, name: 'Sales', code: 'SAL01', company: 'Beta Inc' },
+        { id: 4, name: 'Marketing', code: 'MKT01', company: 'Gamma Ltd' }
+        // Add more as needed
+      ],
+      search: '',
+      page: 1,
+      perPage: 3,
+      selected: []
     };
   },
+  computed: {
+    filteredDepartments() {
+      const query = this.search.toLowerCase();
+      return this.departments.filter(
+        d => d.name.toLowerCase().includes(query) || d.code.toLowerCase().includes(query)
+      );
+    },
+    paginatedDepartments() {
+      const start = (this.page - 1) * this.perPage;
+      return this.filteredDepartments.slice(start, start + this.perPage);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredDepartments.length / this.perPage);
+    },
+    allSelected() {
+      return (
+        this.paginatedDepartments.length > 0 &&
+        this.paginatedDepartments.every(d => this.selected.includes(d.id))
+      );
+    }
+  },
   methods: {
-    addDepartment() {
-      alert("Add Department clicked");
+    toggleAll(e) {
+      const ids = this.paginatedDepartments.map(d => d.id);
+      this.selected = e.target.checked ? [...new Set([...this.selected, ...ids])] : this.selected.filter(id => !ids.includes(id));
     },
-    editDepartment(dept) {
-      alert(`Edit Department: ${dept.name}`);
+    deleteSelected() {
+      this.departments = this.departments.filter(d => !this.selected.includes(d.id));
+      this.selected = [];
     },
-    deleteDepartment(id) {
-      this.departments = this.departments.filter(d => d.id !== id);
+    exportCSV() {
+      const rows = [['ID', 'Name', 'Code', 'Company']];
+      this.filteredDepartments.forEach(d => rows.push([d.id, d.name, d.code, d.company]));
+
+      const csv = rows.map(row => row.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'departments.csv';
+      link.click();
     }
   }
 };
 </script>
 
 <style scoped>
-.department-container {
+.department-list {
+  max-width: 800px;
+  margin: 0 auto;
   padding: 2rem;
-  background-color: #f9fafb;
-  min-height: 100vh;
-}
-
-.department-card {
-  max-width: 900px;
-  margin: auto;
-  background-color: #ffffff;
-  padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-}
-
-.department-title {
-  font-size: 24px;
-  margin-bottom: 1rem;
-  color: #1a202c;
-}
-
-.add-button {
-  padding: 0.5rem 1rem;
-  background-color: #38a169;
-  color: white;
-  border: none;
+  background: #fff;
   border-radius: 6px;
-  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
-.add-button:hover {
-  background-color: #2f855a;
+input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
-.department-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.department-table th,
-.department-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
-  text-align: left;
-}
-
-.edit-button,
-.delete-button {
-  padding: 0.25rem 0.75rem;
-  margin-right: 0.5rem;
+button {
+  padding: 0.5rem 1rem;
   border: none;
+  background: #2c5282;
+  color: white;
   border-radius: 4px;
   cursor: pointer;
 }
 
-.edit-button {
-  background-color: #4299e1;
-  color: white;
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
-.edit-button:hover {
-  background-color: #3182ce;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
 }
 
-.delete-button {
-  background-color: #e53e3e;
-  color: white;
+th, td {
+  border: 1px solid #eee;
+  padding: 0.5rem;
+  text-align: left;
 }
 
-.delete-button:hover {
-  background-color: #c53030;
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

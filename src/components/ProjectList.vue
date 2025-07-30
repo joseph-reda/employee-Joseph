@@ -1,86 +1,163 @@
 <template>
-  <div>
-    <Navbar />
-    <div class="container">
-      <h2 class="title">Project List</h2>
-      <table class="styled-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Project Name</th>
-            <th>Description</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(project, index) in projects" :key="index">
-            <td>{{ index + 1 }}</td>
-            <td>{{ project.name }}</td>
-            <td>{{ project.description }}</td>
-            <td>{{ project.status }}</td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="project-list">
+    <h2 class="title">Projects</h2>
+
+    <div class="actions">
+      <input
+        v-model="search"
+        type="text"
+        placeholder="Search by name"
+        class="search-input"
+      />
+      <button class="add-button" @click="addProject">+ Add Project</button>
     </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Manager</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(project, index) in filteredProjects" :key="index">
+          <td>{{ project.name }}</td>
+          <td>{{ project.manager }}</td>
+          <td>{{ project.status }}</td>
+          <td>
+            <button class="edit" @click="editProject(index)">Edit</button>
+            <button class="delete" @click="deleteProject(index)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
 <script>
-import Navbar from './Navbar.vue';
-
 export default {
-  name: 'ProjectList',
-  components: { Navbar },
+  name: "ProjectList",
   data() {
     return {
+      search: "",
       projects: [
-        { name: 'Website Redesign', description: 'UI/UX improvements', status: 'In Progress' },
-        { name: 'HR System', description: 'Employee data management', status: 'Completed' },
-        { name: 'Payroll Automation', description: 'Automate salary calculations', status: 'Pending' }
+        { name: "Website Redesign", manager: "Alice", status: "In Progress" },
+        { name: "Mobile App", manager: "Bob", status: "Completed" }
       ]
     };
+  },
+  computed: {
+    filteredProjects() {
+      return this.projects.filter(p =>
+        p.name.toLowerCase().includes(this.search.toLowerCase())
+      );
+    }
+  },
+  methods: {
+    addProject() {
+      const name = prompt("Enter project name:");
+      const manager = prompt("Enter manager:");
+      const status = prompt("Enter status:");
+      if (name && manager && status) {
+        this.projects.push({ name, manager, status });
+      }
+    },
+    editProject(index) {
+      const project = this.projects[index];
+      const name = prompt("Edit project name:", project.name);
+      const manager = prompt("Edit manager:", project.manager);
+      const status = prompt("Edit status:", project.status);
+      if (name && manager && status) {
+        this.projects[index] = { name, manager, status };
+      }
+    },
+    deleteProject(index) {
+      if (confirm("Are you sure you want to delete this project?")) {
+        this.projects.splice(index, 1);
+      }
+    }
   }
 };
 </script>
 
 <style scoped>
-.container {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 1rem;
+.project-list {
+  background: #fff;
+  border-radius: 6px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .title {
-  font-size: 1.8rem;
-  font-weight: bold;
   margin-bottom: 1rem;
-  text-align: center;
+  font-size: 1.5rem;
   color: #2c5282;
 }
 
-.styled-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
 
-.styled-table th, .styled-table td {
-  padding: 12px 16px;
-  border: 1px solid #e2e8f0;
+.search-input {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 60%;
+}
+
+.add-button {
+  padding: 0.4rem 0.8rem;
+  background-color: #2c5282;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background-color: #1a365d;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
   text-align: left;
 }
 
-.styled-table th {
-  background-color: #2c5282;
+.edit,
+.delete {
+  padding: 0.3rem 0.6rem;
+  margin-right: 0.3rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit {
+  background-color: #3182ce;
   color: white;
 }
 
-.styled-table tr:nth-child(even) {
-  background-color: #f8f9fa;
+.edit:hover {
+  background-color: #2b6cb0;
 }
 
-.styled-table tr:hover {
-  background-color: #edf2f7;
+.delete {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.delete:hover {
+  background-color: #c53030;
 }
 </style>

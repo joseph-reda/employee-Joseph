@@ -1,134 +1,164 @@
 <template>
-  <div class="employee-container">
-    <div class="employee-card">
-      <h2 class="employee-title">Employee List</h2>
-      <button class="add-button" @click="addEmployee">Add Employee</button>
+  <div class="employee-list">
+    <h2>Employee List</h2>
 
-      <table class="employee-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Position</th>
-            <th>Department</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(employee, index) in employees" :key="employee.id">
-            <td>{{ index + 1 }}</td>
-            <td>{{ employee.name }}</td>
-            <td>{{ employee.position }}</td>
-            <td>{{ employee.department }}</td>
-            <td>
-              <button class="edit-button" @click="editEmployee(employee)">Edit</button>
-              <button class="delete-button" @click="deleteEmployee(employee.id)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="actions">
+      <input type="text" v-model="search" placeholder="Search by name or ID..." />
+      <button @click="deleteSelected" :disabled="!selected.length">Delete Selected</button>
+      <button @click="exportCSV" :disabled="!filteredEmployees.length">Export CSV</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" @change="toggleAll" :checked="allSelected" /></th>
+          <th>Name</th>
+          <th>ID</th>
+          <th>Department</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="emp in paginatedEmployees" :key="emp.id">
+          <td><input type="checkbox" v-model="selected" :value="emp.id" /></td>
+          <td>{{ emp.name }}</td>
+          <td>{{ emp.employeeId }}</td>
+          <td>{{ emp.department }}</td>
+          <td>{{ emp.email }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button @click="page--" :disabled="page === 1">Prev</button>
+      <span>Page {{ page }} of {{ totalPages }}</span>
+      <button @click="page++" :disabled="page === totalPages">Next</button>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: "EmployeeList",
+  name: 'EmployeeList',
   data() {
     return {
       employees: [
-        { id: 1, name: "Ali Youssef", position: "Frontend Developer", department: "Engineering" },
-        { id: 2, name: "Mona Khaled", position: "HR Manager", department: "Human Resources" },
-        { id: 3, name: "Ibrahim Saleh", position: "Accountant", department: "Finance" }
-      ]
+        { id: 1, name: 'Alice Smith', employeeId: 'E001', department: 'HR', email: 'alice@company.com' },
+        { id: 2, name: 'Bob Johnson', employeeId: 'E002', department: 'Engineering', email: 'bob@company.com' },
+        { id: 3, name: 'Carol Davis', employeeId: 'E003', department: 'Sales', email: 'carol@company.com' },
+        { id: 4, name: 'David Wilson', employeeId: 'E004', department: 'Marketing', email: 'david@company.com' }
+        // Add more as needed
+      ],
+      search: '',
+      page: 1,
+      perPage: 3,
+      selected: []
     };
   },
+  computed: {
+    filteredEmployees() {
+      const query = this.search.toLowerCase();
+      return this.employees.filter(
+        e =>
+          e.name.toLowerCase().includes(query) ||
+          e.employeeId.toLowerCase().includes(query)
+      );
+    },
+    paginatedEmployees() {
+      const start = (this.page - 1) * this.perPage;
+      return this.filteredEmployees.slice(start, start + this.perPage);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredEmployees.length / this.perPage);
+    },
+    allSelected() {
+      return (
+        this.paginatedEmployees.length > 0 &&
+        this.paginatedEmployees.every(e => this.selected.includes(e.id))
+      );
+    }
+  },
   methods: {
-    addEmployee() {
-      alert("Add Employee clicked");
+    toggleAll(e) {
+      const ids = this.paginatedEmployees.map(e => e.id);
+      this.selected = e.target.checked
+        ? [...new Set([...this.selected, ...ids])]
+        : this.selected.filter(id => !ids.includes(id));
     },
-    editEmployee(emp) {
-      alert(`Edit Employee: ${emp.name}`);
+    deleteSelected() {
+      this.employees = this.employees.filter(e => !this.selected.includes(e.id));
+      this.selected = [];
     },
-    deleteEmployee(id) {
-      this.employees = this.employees.filter(e => e.id !== id);
+    exportCSV() {
+      const rows = [['ID', 'Name', 'Employee ID', 'Department', 'Email']];
+      this.filteredEmployees.forEach(e =>
+        rows.push([e.id, e.name, e.employeeId, e.department, e.email])
+      );
+
+      const csv = rows.map(row => row.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'employees.csv';
+      link.click();
     }
   }
 };
 </script>
 
 <style scoped>
-.employee-container {
+.employee-list {
+  max-width: 800px;
+  margin: 0 auto;
   padding: 2rem;
-  background-color: #f4f5f7;
-  min-height: 100vh;
-}
-
-.employee-card {
-  max-width: 1000px;
-  margin: auto;
-  background-color: #ffffff;
-  padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-}
-
-.employee-title {
-  font-size: 24px;
-  margin-bottom: 1rem;
-  color: #1a202c;
-}
-
-.add-button {
-  padding: 0.5rem 1rem;
-  background-color: #38a169;
-  color: white;
-  border: none;
+  background: #fff;
   border-radius: 6px;
-  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
-.add-button:hover {
-  background-color: #2f855a;
+input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
-.employee-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.employee-table th,
-.employee-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
-  text-align: left;
-}
-
-.edit-button,
-.delete-button {
-  padding: 0.25rem 0.75rem;
-  margin-right: 0.5rem;
+button {
+  padding: 0.5rem 1rem;
   border: none;
+  background: #2c5282;
+  color: white;
   border-radius: 4px;
   cursor: pointer;
 }
 
-.edit-button {
-  background-color: #4299e1;
-  color: white;
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
-.edit-button:hover {
-  background-color: #3182ce;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
 }
 
-.delete-button {
-  background-color: #e53e3e;
-  color: white;
+th, td {
+  border: 1px solid #eee;
+  padding: 0.5rem;
+  text-align: left;
 }
 
-.delete-button:hover {
-  background-color: #c53030;
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

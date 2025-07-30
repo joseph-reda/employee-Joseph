@@ -7,6 +7,7 @@
         <li><router-link to="/companies">Companies</router-link></li>
         <li><router-link to="/departments">Departments</router-link></li>
         <li><router-link to="/employees">Employees</router-link></li>
+        <li><router-link to="/projects">Projects</router-link></li>
         <li><router-link to="/">Logout</router-link></li>
       </ul>
     </div>
@@ -22,17 +23,17 @@ export default {
 <style scoped>
 .navbar {
   background-color: #2c5282;
-  padding: 1rem;
   color: white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-container {
   max-width: 1200px;
-  margin: auto;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -46,20 +47,19 @@ export default {
 .navbar-links {
   list-style: none;
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
-.navbar-links li {
-  font-weight: 500;
-}
-
-.navbar-links a {
+.navbar-links li a {
   color: white;
   text-decoration: none;
-  transition: color 0.2s ease;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  transition: background-color 0.3s ease;
 }
 
-.navbar-links a:hover {
-  color: #a0c4ff;
+.navbar-links li a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
 }
 </style>
